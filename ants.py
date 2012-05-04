@@ -7,13 +7,6 @@ from antsUI import Ui_MainWindow
 # GLOBALS
 yvector = [1,0.5,0,-0.5,-1,-0.5,0,0.5]
 xvector = [0,0.5,1,0.5,0,-0.5,-1,-0.5]
-#numants = 0
-
-# CONSTANTS (replace with MainWindow parameters)
-FOODENERGY = 18
-MAXENERGY  = 900
-INITIALENERGY = 280
-BREEDENERGY = 600
 
 
 # COLOURS
@@ -23,28 +16,14 @@ BOUNDARY   = QtGui.QColor(BOUNDARY_C)
 BACKGROUND_C = 0xFFFFFF
 BACKGROUND = QtGui.QColor(BACKGROUND_C)
 
-#LIGHTBLUE = QtGui.QColor(0xCCCCFF)
-#LIGHTRED  = QtGui.QColor(0xFF8888)
-#BLUE      = QtGui.QColor(0x0000FF)
-#BROWN     = QtGui.QColor(0xCC6600)
-#BLACK     = QtGui.QColor(0x000000)
-#CYAN      = QtGui.QColor(0x00FFFF)
-
-LIGHTBLUE = 0xCCCCFF
-LIGHTRED  = 0xFF8888
-BLUE      = 0x0000FF
-BROWN     = 0xCC6600
-BLACK     = 0x000000
-CYAN      = 0x00FFFF
 
 
 # ANT CLASS DEFINITION
 class Ant:
-    def __init__(self, initialx, initialy, initialh, hdna, edna, e, clr):
-        #global numants
+    def __init__(self, initialx, initialy, hdna, edna, e, clr):
         self.x = initialx
         self.y = initialy
-        self.h = initialh
+        self.h = 1
         self.s = 0
         self.colour = clr
         self.energy = e
@@ -52,7 +31,6 @@ class Ant:
         self.dna_hunting = hdna[:]
         self.next = 0
         self.path = [[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]]
-        #numants += 1
 
     def __del__(self):
         pass
@@ -61,6 +39,8 @@ class Ant:
         self.path[self.s] = [self.x,self.y]
         self.x += xvector[self.h]
         self.y += yvector[self.h]
+
+        self.gene = self.dna_hunting[self.s]
 
         # Work out what the ant has stepped in
         pixel = parent.getPixel(self.x,self.y)
@@ -84,7 +64,6 @@ class Ant:
 
         else:
             parent.setPixel(self.x,self.y,self.colour)
-            self.gene = self.dna_hunting[self.s]
 
         self.energy -= 1
         self.s += 1
@@ -112,8 +91,6 @@ class Ant:
 
 # Return QImage with initialized colour palette
 def init_image( width,height ):
-    scale7 = [0,36,72,108,144,180,216,255]
-    scale3 = [0,85,170,255]
     image = QtGui.QImage(width, height, QtGui.QImage.Format_RGB32)
     image.fill(BACKGROUND_C)
     return image
@@ -208,17 +185,24 @@ class Main(QtGui.QMainWindow):
         return (8,8,self.ui.arena.width()-8,self.ui.arena.height()-8)
 
     def creatant(self):
-        self.ants = [
-                        Ant(200,100,1,"LLFFFFFRFFFRRRLL","RLFRLRRLFRLLRRFR",INITIALENERGY,LIGHTBLUE),
-                        Ant(300,200,1,"RRRRLLLLFFFFLLRR","FFRRRLLLLLRFLRLR",INITIALENERGY,LIGHTRED ),
-                        Ant(100,100,1,"RRRLLLFFFFFFFFFF","FFFFFFFFFFFFFFFR",INITIALENERGY,BLUE ),
-                        Ant(400,200,1,"RFLRFLLFFFLRFLFR","RRRFLLLLFRFFLRRR",INITIALENERGY,BROWN),
-                        Ant(250,150,1,"FFLFRFRRLLRLFFRL","RRLRLLLLFFLFFLRR",INITIALENERGY,BLACK),
-                        Ant(100,300,1,"LLFFFRRFFFLLFFFF","LRLRRLRLLRLRRLRL",INITIALENERGY,CYAN)
-                    ]
-        
+        self.ants = []
+        for dna in [["LLFFFFFRFFFRRRLL","RLFRLRRLFRLLRRFR"],
+                    ["RRRRLLLLFFFFLLRR","FFRRRLLLLLRFLRLR"],
+                    ["RRRLLLFFFFFFFFFF","FFFFFFFFFFFFFFFR"],
+                    ["RFLRFLLFFFLRFLFR","RRRFLLLLFRFFLRRR"],
+                    ["FFLFRFRRLLRLFFRL","RRLRLLLLFFLFFLRR"],
+                    ["LLFFFRRFFFLLFFFF","LRLRRLRLLRLRRLRL"]]:
+            self.ants.append( Ant( random.randrange(40,self.ui.arena.width()-40),
+                                   random.randrange(0,self.ui.arena.height()),
+                                   dna[0], dna[1], INITIALENERGY,
+                                   self.generate_colour( dna[0], dna[1] )
+                                 )
+                            )
+       
     def animant(self):
-        #print self.ants.__len__()
+        if 2 > self.ants.__len__():
+            self.stopAnimation()
+            return
         newlist = []
         best = [0,0]
         secondbest = [0,0]
@@ -237,7 +221,7 @@ class Main(QtGui.QMainWindow):
             # create two new ants
             self.breed(best,secondbest)
 
-        #if 98 < random.randrange(0,100):
+        # Revegetate - plant a bud on an existing bit of greenery (if found)
         vx = random.randrange(40,self.ui.arena.width()-40)
         vy = random.randrange(40,self.ui.arena.height()-40)
         vp = self.getPixel(vx,vy)
@@ -251,7 +235,7 @@ class Main(QtGui.QMainWindow):
 
     def breed( self, mother, father ):
         if father[0] < BREEDENERGY:
-            print "Breed fail %d %d\n" % (mother[0], father[0])
+            #print "Breed fail %d %d\n" % (mother[0], father[0])
             return
         ah = []
         bh = []
@@ -274,22 +258,22 @@ class Main(QtGui.QMainWindow):
             bf.append( mfdna[i*2+1] )
             bf.append( ffdna[i*2]   )
         
-        energy = (mother[0]+father[0])/6 # some wasted energy 
+        energy = (mother[0]+father[0])/8 # some wasted energy 
         #mc = mother[1].colour
         #fc = father[1].colour
 
         mc = self.generate_colour(ah,af)
         fc = self.generate_colour(bh,bf)
 
-        print "Breeding %x and %x\n" % (mc,fc)        
+        #print "Breeding %x and %x\n" % (mc,fc)        
 
         self.ants.append(Ant( mother[1].x+(father[1].x-mother[1].x)/10,
                               mother[1].y+(father[1].y-mother[1].y)/10,
-                              1,ah,af,energy, mc ))
+                              ah,af,energy, mc ))
 
         self.ants.append(Ant( mother[1].x+(father[1].x-mother[1].x)/5,
                               mother[1].y+(father[1].y-mother[1].y)/5,
-                              1,bh,bf,energy, fc ))
+                              bh,bf,energy, fc ))
     
         mother[1].energy = energy
         father[1].energy = energy
@@ -301,7 +285,7 @@ class Main(QtGui.QMainWindow):
             if hunt[i] == 'R':
                 colour |= 1  
             colour *= 2
-            if feed[i] == 'F':
+            if feed[i] == 'L':
                 colour |= 1 
 
         if not( colour & 0x00FF00FFL ):
