@@ -21,3 +21,7 @@ antsUI.py directly.
 You will need to have PyQt4 installed for this program to work:
 http://www.riverbankcomputing.co.uk/
 
+License
+-------
+
+Use in any way you wish, send me a copy of anything cool that you create from it.
