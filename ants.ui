@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>645</width>
-    <height>409</height>
+    <width>653</width>
+    <height>472</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
       <x>10</x>
       <y>10</y>
       <width>481</width>
-      <height>391</height>
+      <height>451</height>
      </rect>
     </property>
     <property name="minimumSize">
@@ -39,10 +39,10 @@
    <widget class="QLineEdit" name="initialEnergy">
     <property name="geometry">
      <rect>
-      <x>502</x>
-      <y>60</y>
-      <width>141</width>
-      <height>23</height>
+      <x>500</x>
+      <y>30</y>
+      <width>112</width>
+      <height>26</height>
      </rect>
     </property>
     <property name="inputMask">
@@ -55,9 +55,9 @@
    <widget class="QLabel" name="label_3">
     <property name="geometry">
      <rect>
-      <x>500</x>
-      <y>40</y>
-      <width>141</width>
+      <x>499</x>
+      <y>11</y>
+      <width>81</width>
       <height>16</height>
      </rect>
     </property>
@@ -68,10 +68,10 @@
    <widget class="QLineEdit" name="foodEnergy">
     <property name="geometry">
      <rect>
-      <x>502</x>
-      <y>210</y>
-      <width>141</width>
-      <height>23</height>
+      <x>500</x>
+      <y>150</y>
+      <width>112</width>
+      <height>26</height>
      </rect>
     </property>
     <property name="inputMask">
@@ -85,8 +85,8 @@
     <property name="geometry">
      <rect>
       <x>500</x>
-      <y>190</y>
-      <width>141</width>
+      <y>130</y>
+      <width>72</width>
       <height>16</height>
      </rect>
     </property>
@@ -97,10 +97,10 @@
    <widget class="QLineEdit" name="breedEnergy">
     <property name="geometry">
      <rect>
-      <x>502</x>
-      <y>160</y>
-      <width>141</width>
-      <height>23</height>
+      <x>500</x>
+      <y>270</y>
+      <width>112</width>
+      <height>26</height>
      </rect>
     </property>
     <property name="inputMask">
@@ -114,8 +114,8 @@
     <property name="geometry">
      <rect>
       <x>500</x>
-      <y>140</y>
-      <width>141</width>
+      <y>250</y>
+      <width>78</width>
       <height>16</height>
      </rect>
     </property>
@@ -127,9 +127,9 @@
     <property name="geometry">
      <rect>
       <x>500</x>
-      <y>110</y>
-      <width>141</width>
-      <height>23</height>
+      <y>80</y>
+      <width>112</width>
+      <height>26</height>
      </rect>
     </property>
     <property name="inputMask">
@@ -142,9 +142,9 @@
    <widget class="QLabel" name="label_6">
     <property name="geometry">
      <rect>
-      <x>498</x>
-      <y>90</y>
-      <width>141</width>
+      <x>500</x>
+      <y>60</y>
+      <width>106</width>
       <height>16</height>
      </rect>
     </property>
@@ -155,10 +155,10 @@
    <widget class="QLineEdit" name="initFood">
     <property name="geometry">
      <rect>
-      <x>502</x>
-      <y>260</y>
-      <width>141</width>
-      <height>23</height>
+      <x>500</x>
+      <y>200</y>
+      <width>112</width>
+      <height>26</height>
      </rect>
     </property>
     <property name="inputMask">
@@ -172,8 +172,8 @@
     <property name="geometry">
      <rect>
       <x>500</x>
-      <y>240</y>
-      <width>141</width>
+      <y>180</y>
+      <width>97</width>
       <height>16</height>
      </rect>
     </property>
@@ -184,9 +184,9 @@
    <widget class="QPushButton" name="reset">
     <property name="geometry">
      <rect>
-      <x>530</x>
-      <y>350</y>
-      <width>81</width>
+      <x>499</x>
+      <y>423</y>
+      <width>85</width>
       <height>27</height>
      </rect>
     </property>
@@ -197,9 +197,9 @@
    <widget class="QPushButton" name="restart">
     <property name="geometry">
      <rect>
-      <x>530</x>
-      <y>310</y>
-      <width>81</width>
+      <x>500</x>
+      <y>390</y>
+      <width>85</width>
       <height>27</height>
      </rect>
     </property>
@@ -207,8 +207,45 @@
      <string>Start/Stop</string>
     </property>
    </widget>
+   <widget class="QCheckBox" name="GluttonyKills">
+    <property name="geometry">
+     <rect>
+      <x>500</x>
+      <y>110</y>
+      <width>111</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Gluttony Kills</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="Mutations">
+    <property name="geometry">
+     <rect>
+      <x>500</x>
+      <y>300</y>
+      <width>101</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Mutations</string>
+    </property>
+   </widget>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>initialEnergy</tabstop>
+  <tabstop>maxEnergy</tabstop>
+  <tabstop>GluttonyKills</tabstop>
+  <tabstop>foodEnergy</tabstop>
+  <tabstop>initFood</tabstop>
+  <tabstop>breedEnergy</tabstop>
+  <tabstop>Mutations</tabstop>
+  <tabstop>restart</tabstop>
+  <tabstop>reset</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

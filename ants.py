@@ -1,5 +1,17 @@
 #!/usr/bin/python
 
+#----------------------------------------------------------------------
+#   ants.py
+#       Simulation of population growth and genetic evolution
+#       with user-settable energy supply profiles.
+#
+#   Author: Peter Maloy
+#           geekbrit@gmail.com
+#
+#   No rights reserved.
+#
+#----------------------------------------------------------------------
+
 import os,sys,random,time
 from PyQt4 import QtCore,QtGui
 from antsUI import Ui_MainWindow
@@ -79,7 +91,10 @@ class Ant:
 
         # Manage energy levels
         if self.energy > MAXENERGY:
-            self.energy = MAXENERGY
+            if parent.ui.GluttonyKills.checkState():
+                self.energy = 0
+            else:
+                self.energy = MAXENERGY
 
         if self.energy <= 0:
             for c in self.path:
@@ -188,7 +203,7 @@ class Main(QtGui.QMainWindow):
         self.ants = []
         for dna in [["LLFFFFFRFFFRRRLL","RLFRLRRLFRLLRRFR"],
                     ["RRRRLLLLFFFFLLRR","FFRRRLLLLLRFLRLR"],
-                    ["RRRLLLFFFFFFFFFF","FFFFFFFFFFFFFFFR"],
+                    ["RRRLLLFFFFFFFFFF","FFFFFFFLFFFFFFFR"],
                     ["RFLRFLLFFFLRFLFR","RRRFLLLLFRFFLRRR"],
                     ["FFLFRFRRLLRLFFRL","RRLRLLLLFFLFFLRR"],
                     ["LLFFFRRFFFLLFFFF","LRLRRLRLLRLRRLRL"]]:
@@ -245,7 +260,8 @@ class Main(QtGui.QMainWindow):
         mfdna = mother[1].dna_feeding
         fhdna = father[1].dna_hunting
         ffdna = father[1].dna_feeding
-        
+
+       
         # zip the genes together
         for i in range(8):
             ah.append( mhdna[i*2]   )
@@ -257,6 +273,17 @@ class Main(QtGui.QMainWindow):
             af.append( ffdna[i*2+1] )
             bf.append( mfdna[i*2+1] )
             bf.append( ffdna[i*2]   )
+
+        if self.ui.Mutations.checkState():
+            gamma = random.randint(0,255)
+            if gamma & 1:
+                self.mutate(ah)
+            if gamma & 4:
+                self.mutate(bh)
+            if gamma & 16:
+                self.mutate(af)
+            if gamma & 64:
+                self.mutate(bf)
         
         energy = (mother[0]+father[0])/8 # some wasted energy 
         #mc = mother[1].colour
@@ -267,16 +294,28 @@ class Main(QtGui.QMainWindow):
 
         #print "Breeding %x and %x\n" % (mc,fc)        
 
-        self.ants.append(Ant( mother[1].x+(father[1].x-mother[1].x)/10,
-                              mother[1].y+(father[1].y-mother[1].y)/10,
+        self.ants.append(Ant( mother[1].x+(father[1].x-mother[1].x)/100,
+                              mother[1].y+(father[1].y-mother[1].y)/100,
                               ah,af,energy, mc ))
 
-        self.ants.append(Ant( mother[1].x+(father[1].x-mother[1].x)/5,
-                              mother[1].y+(father[1].y-mother[1].y)/5,
+        self.ants.append(Ant( mother[1].x+(father[1].x-mother[1].x)/200,
+                              mother[1].y+(father[1].y-mother[1].y)/200,
                               bh,bf,energy, fc ))
     
         mother[1].energy = energy
         father[1].energy = energy
+
+    def mutate(self,dna):
+        index = random.randint(0,15)
+        if dna[index] == 'L':
+            dna[index] = 'F'
+        elif dna[index] == 'R':
+            dna[index] = 'F'
+        elif dna[index] == 'F':
+            if index & 1:
+                dna[index] = 'R'
+            else:
+                dna[index] = 'L'
 
     def generate_colour(self,hunt,feed):
         colour = 0;
