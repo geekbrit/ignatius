@@ -17,9 +17,10 @@ from PyQt4 import QtCore,QtGui
 from antsUI import Ui_MainWindow
 
 # GLOBALS
-yvector = [1,0.5,0,-0.5,-1,-0.5,0,0.5]
-xvector = [0,0.5,1,0.5,0,-0.5,-1,-0.5]
-
+#yvector = [1,0.5,0,-0.5,-1,-0.5,0,0.5]
+#xvector = [0,0.5,1,0.5,0,-0.5,-1,-0.5]
+yvector = [1,0.92,0.7,0.38,0,-0.38,-0.7,-0.92,-1,-0.92,-0.7,-0.38,0,0.38,0.7,0.92]
+xvector = [0,-0.38,-0.7,-0.92,-1,-0.92,-0.7,-0.38,0,0.38,0.7,0.92,1,0.92,0.7,0.38]
 
 # COLOURS
 BOUNDARY_C = 0xC80000
@@ -32,13 +33,13 @@ BACKGROUND = QtGui.QColor(BACKGROUND_C)
 
 # ANT CLASS DEFINITION
 class Ant:
-    def __init__(self, initialx, initialy, hdna, edna, e, clr):
+    def __init__(self, initialx, initialy, hdna, edna, energy, clr):
         self.x = initialx
         self.y = initialy
-        self.h = 1
-        self.s = 0
+        self.h = 1              # heading
+        self.s = 0              # cyclic counter for stepping through the chromosones
         self.colour = clr
-        self.energy = e
+        self.energy = energy
         self.dna_feeding = edna[:]
         self.dna_hunting = hdna[:]
         self.next = 0
@@ -48,18 +49,21 @@ class Ant:
         pass
 
     def move(self,parent):
-        self.path[self.s] = [self.x,self.y]
+        # Move forward one step, including wraparound if the ant reaches the border.
+        # Modify the ant's heading using the appropriate DNA strand, depending on 
+        #  whether the ant is looking for food or is on a food pixel.
+        # Adjust the ant's energy level, and return the new level as the output
+        #  of this function.
+
+        parent.setPixel(self.path[self.s][0],self.path[self.s][1],BACKGROUND_C)
         self.x += xvector[self.h]
         self.y += yvector[self.h]
-
-        self.gene = self.dna_hunting[self.s]
 
         # Work out what the ant has stepped in
         pixel = parent.getPixel(self.x,self.y)
 
         if (not(pixel & 0x00FF00FFL)) and (pixel & 0x0000FF00L): # Check for food - eat your greens
             self.energy += FOODENERGY
-            parent.setPixel(self.x,self.y,BACKGROUND_C)
             self.gene = self.dna_feeding[self.s]
 
         elif pixel == BOUNDARY_C:
@@ -74,22 +78,8 @@ class Ant:
             elif self.y >= limits[3]:
                 self.y = limits[1]+1
 
-        else:
-            parent.setPixel(self.x,self.y,self.colour)
-
-        self.energy -= 1
-        self.s += 1
-        self.s &= 15
-        parent.setPixel(self.path[self.s][0],self.path[self.s][1],BACKGROUND_C)
-
-        # work out new heading from gene
-        if 'L' == self.gene:
-            self.h -= 1
-        if 'R' == self.gene:
-            self.h += 1
-        self.h &= 7 
-
         # Manage energy levels
+        self.energy -= 1
         if self.energy > MAXENERGY:
             if parent.ui.GluttonyKills.checkState():
                 self.energy = 0
@@ -100,6 +90,21 @@ class Ant:
             for c in self.path:
                 parent.setPixel(c[0],c[1],BACKGROUND_C)
             return 0
+
+        parent.setPixel(self.x,self.y,self.colour)
+        self.path[self.s] = [self.x,self.y]
+
+        self.s += 1
+        self.s &= 15
+
+        self.gene = self.dna_hunting[self.s]
+
+        # work out new heading from gene
+        if 'L' == self.gene:
+            self.h -= 1
+        if 'R' == self.gene:
+            self.h += 1
+        self.h &= 15 
 
         return self.energy
 
