@@ -22,6 +22,9 @@ from antsUI import Ui_MainWindow
 yvector = [1,0.92,0.7,0.38,0,-0.38,-0.7,-0.92,-1,-0.92,-0.7,-0.38,0,0.38,0.7,0.92]
 xvector = [0,-0.38,-0.7,-0.92,-1,-0.92,-0.7,-0.38,0,0.38,0.7,0.92,1,0.92,0.7,0.38]
 
+HDG_RANGE_MASK = 15
+
+
 # COLOURS
 BOUNDARY_C = 0xC80000
 BOUNDARY   = QtGui.QColor(BOUNDARY_C)
@@ -33,10 +36,10 @@ BACKGROUND = QtGui.QColor(BACKGROUND_C)
 
 # ANT CLASS DEFINITION
 class Ant:
-    def __init__(self, initialx, initialy, hdna, edna, energy, clr):
+    def __init__(self, initialx, initialy, hdna, edna, heading, energy, clr):
         self.x = initialx
         self.y = initialy
-        self.h = 1              # heading
+        self.h = heading
         self.s = 0              # cyclic counter for stepping through the chromosones
         self.colour = clr
         self.energy = energy
@@ -61,6 +64,7 @@ class Ant:
 
         # Work out what the ant has stepped in
         pixel = parent.getPixel(self.x,self.y)
+        self.gene = self.dna_hunting[self.s]
 
         if (not(pixel & 0x00FF00FFL)) and (pixel & 0x0000FF00L): # Check for food - eat your greens
             self.energy += FOODENERGY
@@ -97,14 +101,13 @@ class Ant:
         self.s += 1
         self.s &= 15
 
-        self.gene = self.dna_hunting[self.s]
 
         # work out new heading from gene
         if 'L' == self.gene:
             self.h -= 1
         if 'R' == self.gene:
             self.h += 1
-        self.h &= 15 
+        self.h &= HDG_RANGE_MASK 
 
         return self.energy
 
@@ -118,10 +121,10 @@ def init_image( width,height ):
 # Paint a blob of vegetation
 def vegetate( painter,x,y,r ):
     radialGrad = QtGui.QRadialGradient(QtCore.QPointF(x, y), r);
-    radialGrad.setColorAt(0, QtGui.QColor(0,100,0));
-    radialGrad.setColorAt(1, QtGui.QColor(0,50,0));
+    radialGrad.setColorAt(0, QtGui.QColor(0,220,0));
+    radialGrad.setColorAt(1, QtGui.QColor(0,150,0));
     painter.setBrush(radialGrad)
-    painter.setPen(QtGui.QColor(0,50,0))
+    painter.setPen(QtGui.QColor(0,150,0))
     painter.drawEllipse(x-r,y-r,2*r,2*r)
 
  
@@ -214,7 +217,7 @@ class Main(QtGui.QMainWindow):
                     ["LLFFFRRFFFLLFFFF","LRLRRLRLLRLRRLRL"]]:
             self.ants.append( Ant( random.randrange(40,self.ui.arena.width()-40),
                                    random.randrange(0,self.ui.arena.height()),
-                                   dna[0], dna[1], INITIALENERGY,
+                                   dna[0], dna[1], random.randint(0,HDG_RANGE_MASK), INITIALENERGY,
                                    self.generate_colour( dna[0], dna[1] )
                                  )
                             )
@@ -242,8 +245,8 @@ class Main(QtGui.QMainWindow):
             self.breed(best,secondbest)
 
         # Revegetate - plant a bud on an existing bit of greenery (if found)
-        vx = random.randrange(40,self.ui.arena.width()-40)
-        vy = random.randrange(40,self.ui.arena.height()-40)
+        vx = random.randrange(20,self.ui.arena.width()-20)
+        vy = random.randrange(20,self.ui.arena.height()-20)
         vp = self.getPixel(vx,vy)
         if (not(vp & 0x00FF00FFL)) and (vp & 0x0000FF00L): # Check for food - grow your greens
             painter = QtGui.QPainter()
@@ -299,13 +302,11 @@ class Main(QtGui.QMainWindow):
 
         #print "Breeding %x and %x\n" % (mc,fc)        
 
-        self.ants.append(Ant( mother[1].x+(father[1].x-mother[1].x)/100,
-                              mother[1].y+(father[1].y-mother[1].y)/100,
-                              ah,af,energy, mc ))
+        self.ants.append(Ant( mother[1].x, mother[1].y,
+                              ah,af,(mother[1].h+1)&HDG_RANGE_MASK, energy, mc ))
 
-        self.ants.append(Ant( mother[1].x+(father[1].x-mother[1].x)/200,
-                              mother[1].y+(father[1].y-mother[1].y)/200,
-                              bh,bf,energy, fc ))
+        self.ants.append(Ant( mother[1].x, mother[1].y,
+                              bh,bf,(father[1].h-1)&HDG_RANGE_MASK, energy, fc ))
     
         mother[1].energy = energy
         father[1].energy = energy
