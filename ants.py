@@ -13,12 +13,11 @@
 #----------------------------------------------------------------------
 
 import os,sys,random,time
+from math import sqrt
 from PyQt4 import QtCore,QtGui
 from antsUI import Ui_MainWindow
 
 # GLOBALS
-#yvector = [1,0.5,0,-0.5,-1,-0.5,0,0.5]
-#xvector = [0,0.5,1,0.5,0,-0.5,-1,-0.5]
 yvector = [1,0.92,0.7,0.38,0,-0.38,-0.7,-0.92,-1,-0.92,-0.7,-0.38,0,0.38,0.7,0.92]
 xvector = [0,-0.38,-0.7,-0.92,-1,-0.92,-0.7,-0.38,0,0.38,0.7,0.92,1,0.92,0.7,0.38]
 
@@ -229,16 +228,23 @@ class Main(QtGui.QMainWindow):
         newlist = []
         best = [0,0]
         secondbest = [0,0]
+
+        # new algorithm - ants must be within local radius, requires two loops
         for ant in self.ants:
             energy = ant.move(self)
             if( energy ):
                 newlist.append( ant )
                 if energy > best[0]:
                     best = [energy,ant]
-                elif energy > secondbest[0]:
-                    secondbest = [energy,ant]
 
         self.ants = newlist[:]
+
+        if best[0]:
+            for ant in self.ants:
+                if  ant.energy > secondbest[0]:
+                    distance = int(sqrt((ant.x - best[1].x)*(ant.x - best[1].x) + (ant.y - best[1].y)*(ant.y - best[1].y)))
+                    if 0 < distance < 16:
+                        secondbest = [ant.energy, ant, distance]
 
         if best[0] and secondbest[0]:
             # create two new ants
