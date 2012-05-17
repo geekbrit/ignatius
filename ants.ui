@@ -49,7 +49,7 @@
      <string/>
     </property>
     <property name="text">
-     <string>280</string>
+     <string>2800</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_3">
@@ -78,7 +78,7 @@
      <string/>
     </property>
     <property name="text">
-     <string>18</string>
+     <string>60</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_4">
@@ -107,7 +107,7 @@
      <string/>
     </property>
     <property name="text">
-     <string>600</string>
+     <string>3600</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_5">
@@ -136,7 +136,7 @@
      <string/>
     </property>
     <property name="text">
-     <string>900</string>
+     <string>4000</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_6">
@@ -165,7 +165,7 @@
      <string/>
     </property>
     <property name="text">
-     <string>800</string>
+     <string>900</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_7">

@@ -13,7 +13,8 @@
 #----------------------------------------------------------------------
 
 import os,sys,random,time
-from math import sqrt
+from string import join
+from math import sqrt, fabs
 from PyQt4 import QtCore,QtGui
 from antsUI import Ui_MainWindow
 
@@ -41,11 +42,16 @@ class Ant:
         self.h = heading
         self.s = 0              # cyclic counter for stepping through the chromosones
         self.colour = clr
+        
+        # Strength of predation is proportional to the 'redness' of the ant
+        self.predator = (clr >> 15) - (((clr >> 8) & 255) + (clr & 255))
         self.energy = energy
         self.dna_feeding = edna[:]
         self.dna_hunting = hdna[:]
         self.next = 0
-        self.path = [[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0],[0,0]]
+        
+        # path entries: History of recently visited [x-coord, y-coord, underlying pixel colour]
+        self.path = [[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0]]
 
     def __del__(self):
         pass
@@ -57,7 +63,10 @@ class Ant:
         # Adjust the ant's energy level, and return the new level as the output
         #  of this function.
 
-        parent.setPixel(self.path[self.s][0],self.path[self.s][1],BACKGROUND_C)
+        # Replace the oldest pixel in the path history (avoids creating infinitely long Ants)
+        parent.setPixel(self.path[self.s][0],self.path[self.s][1],self.path[self.s][2])
+        
+        # Move forward one step on current heading
         self.x += xvector[self.h]
         self.y += yvector[self.h]
 
@@ -65,11 +74,18 @@ class Ant:
         pixel = parent.getPixel(self.x,self.y)
         self.gene = self.dna_hunting[self.s]
 
-        if (not(pixel & 0x00FF00FFL)) and (pixel & 0x0000FF00L): # Check for food - eat your greens
-            self.energy += FOODENERGY
-            self.gene = self.dna_feeding[self.s]
-
+        if pixel == BACKGROUND_C or pixel == self.colour:
+            pixel = BACKGROUND_C # background is a do-nothing case  
+        elif (not(pixel & 0x00FF00FFL)) and (pixel & 0x0000FF00L): # Check for food - eat your greens
+            if self.predator <= 0:
+                pixel = BACKGROUND_C
+                self.energy += FOODENERGY
+                self.gene = self.dna_feeding[self.s]
+            else:
+                pass
+            
         elif pixel == BOUNDARY_C:
+            pixel = BACKGROUND_C
             limits = parent.mapLimits()
             if self.x <= limits[0]:
                 self.x = limits[2]-1
@@ -80,9 +96,29 @@ class Ant:
                 self.y = limits[3]-1
             elif self.y >= limits[3]:
                 self.y = limits[1]+1
+        
+            # Must be another ant - see if we can eat it
+        else: 
+            if self.predator > 0:
+                try:
+                    for prey in parent.ants:
+                        if self.predator > prey.predator:
+                            for point in prey.path:
+                                if (int(point[0]) == int(self.x)) and (int(point[1]) == int(self.y)):
+                                    self.energy += prey.energy
+                                    prey.energy = -1000  # next time it moves, it's dead
+                                    raise StopIteration()
+                except StopIteration:
+                    pass
+            pixel = BACKGROUND_C
 
-        # Manage energy levels
-        self.energy -= 1
+
+        # Manage energy levels - separated for experiments with different energy consumption for predators
+        if self.predator > 0:
+            self.energy -= 1
+        else:
+            self.energy -= 1
+
         if self.energy > MAXENERGY:
             if parent.ui.GluttonyKills.checkState():
                 self.energy = 0
@@ -95,7 +131,7 @@ class Ant:
             return 0
 
         parent.setPixel(self.x,self.y,self.colour)
-        self.path[self.s] = [self.x,self.y]
+        self.path[self.s] = [self.x,self.y,pixel]
 
         self.s += 1
         self.s &= 15
@@ -166,7 +202,7 @@ class Main(QtGui.QMainWindow):
 
         # Draw initial vegetation
         while total_radius > 0:
-            radius = random.randrange(10,35,4)
+            radius = random.randrange(10,25,4)
             total_radius -= radius
             vx = random.randrange(0,self.ui.arena.width())
             vy = random.randrange(0,self.ui.arena.height())
@@ -209,6 +245,10 @@ class Main(QtGui.QMainWindow):
     def creatant(self):
         self.ants = []
         for dna in [["LLFFFFFRFFFRRRLL","RLFRLRRLFRLLRRFR"],
+                    ["FFRRRLLLLLRFLRLR","RRRRLLLLFFFFLLRR"],
+                    ["RRRLLLFFFFFFFFFF","RFLRFLLFFFLRFLFR"],
+                    ["FFFFFFFLFFFFFFFR","LLLFLLLLFRFFLRRR"],
+                    ["FFLFRFRRLLRLFFRL","RRLRLLLLFFLFFLRR"],
                     ["RRRRLLLLFFFFLLRR","FFRRRLLLLLRFLRLR"],
                     ["RRRLLLFFFFFFFFFF","FFFFFFFLFFFFFFFR"],
                     ["RFLRFLLFFFLRFLFR","RRRFLLLLFRFFLRRR"],
@@ -243,7 +283,7 @@ class Main(QtGui.QMainWindow):
             for ant in self.ants:
                 if  ant.energy > secondbest[0]:
                     distance = int(sqrt((ant.x - best[1].x)*(ant.x - best[1].x) + (ant.y - best[1].y)*(ant.y - best[1].y)))
-                    if 0 < distance < 16:
+                    if 0 < distance < 48:
                         secondbest = [ant.energy, ant, distance]
 
         if best[0] and secondbest[0]:
@@ -251,25 +291,23 @@ class Main(QtGui.QMainWindow):
             self.breed(best,secondbest)
 
         # Revegetate - plant a bud on an existing bit of greenery (if found)
-        vx = random.randrange(20,self.ui.arena.width()-20)
-        vy = random.randrange(20,self.ui.arena.height()-20)
-        vp = self.getPixel(vx,vy)
-        if (not(vp & 0x00FF00FFL)) and (vp & 0x0000FF00L): # Check for food - grow your greens
-            painter = QtGui.QPainter()
-            painter.begin(self.qimg)
-            vegetate(painter,vx,vy,10)
-            painter.end()
+        if random.randint(0,100) > 60: # TODO - make this a panel configuration option
+            vx = random.randrange(20,self.ui.arena.width()-20)
+            vy = random.randrange(20,self.ui.arena.height()-20)
+            vp = self.getPixel(vx,vy)
+            if (not(vp & 0x00FF00FFL)) and (vp & 0x0000FF00L): # Check for food - grow your greens
+                painter = QtGui.QPainter()
+                painter.begin(self.qimg)
+                vegetate(painter,vx,vy,10)
+                painter.end()
 
         self.ui.arena.setPixmap(QtGui.QPixmap.fromImage(self.qimg))
 
     def breed( self, mother, father ):
+        # Mother has most energy, so if this test passes, both would pass
         if father[0] < BREEDENERGY:
-            #print "Breed fail %d %d\n" % (mother[0], father[0])
             return
-        ah = []
-        bh = []
-        af = []
-        bf = []
+        
         mhdna = mother[1].dna_hunting
         mfdna = mother[1].dna_feeding
         fhdna = father[1].dna_hunting
@@ -277,36 +315,28 @@ class Main(QtGui.QMainWindow):
 
        
         # zip the genes together
-        for i in range(8):
-            ah.append( mhdna[i*2]   )
-            ah.append( fhdna[i*2+1] )
-            bh.append( mhdna[i*2+1] )
-            bh.append( fhdna[i*2]   )
-
-            af.append( mfdna[i*2]   )
-            af.append( ffdna[i*2+1] )
-            bf.append( mfdna[i*2+1] )
-            bf.append( ffdna[i*2]   )
-
+        hh = zip(mhdna,fhdna)
+        ff = zip(mfdna,ffdna)
+        ah = ''.join("%s%s" % tup for tup in hh[:8] )
+        bh = ''.join("%s%s" % tup for tup in hh[8:] )
+        af = ''.join("%s%s" % tup for tup in ff[:8] )
+        bf = ''.join("%s%s" % tup for tup in ff[8:] )
+        
         if self.ui.Mutations.checkState():
-            gamma = random.randint(0,255)
+            gamma = random.randint(0,1024)
             if gamma & 1:
                 self.mutate(ah)
-            if gamma & 4:
+            elif gamma & 8:
                 self.mutate(bh)
-            if gamma & 16:
+            elif gamma & 64:
                 self.mutate(af)
-            if gamma & 64:
+            elif gamma & 256:
                 self.mutate(bf)
         
         energy = (mother[0]+father[0])/8 # some wasted energy 
-        #mc = mother[1].colour
-        #fc = father[1].colour
 
         mc = self.generate_colour(ah,af)
         fc = self.generate_colour(bh,bf)
-
-        #print "Breeding %x and %x\n" % (mc,fc)        
 
         self.ants.append(Ant( mother[1].x, mother[1].y,
                               ah,af,(mother[1].h+1)&HDG_RANGE_MASK, energy, mc ))
@@ -316,6 +346,7 @@ class Main(QtGui.QMainWindow):
     
         mother[1].energy = energy
         father[1].energy = energy
+
 
     def mutate(self,dna):
         index = random.randint(0,15)
@@ -329,14 +360,15 @@ class Main(QtGui.QMainWindow):
             else:
                 dna[index] = 'L'
 
+
     def generate_colour(self,hunt,feed):
         colour = 0;
         for i in range(12):
             colour *= 2
-            if hunt[i] == 'R':
+            if hunt[i] == 'L':
                 colour |= 1  
             colour *= 2
-            if feed[i] == 'L':
+            if feed[i] == 'R':
                 colour |= 1 
 
         if not( colour & 0x00FF00FFL ):
@@ -345,15 +377,11 @@ class Main(QtGui.QMainWindow):
         return colour
   
 def main():
-    # This is boilerplate, it's going to be the same on
-    # almost every app you write
     app = QtGui.QApplication(sys.argv)
     window=Main()
     window.creatant()
     window.show()
     window.raise_()
-
-    # It's exec_ because exec is a reserved word in Python
     sys.exit(app.exec_())
 
 if __name__ == "__main__":

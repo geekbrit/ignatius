@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ants.ui'
 #
-# Created: Tue May  8 15:17:08 2012
+# Created: Thu May 17 10:33:28 2012
 #      by: PyQt4 UI code generator 4.8.5
 #
 # WARNING! All changes made in this file will be lost!
@@ -30,7 +30,7 @@ class Ui_MainWindow(object):
         self.initialEnergy = QtGui.QLineEdit(self.centralwidget)
         self.initialEnergy.setGeometry(QtCore.QRect(500, 30, 112, 26))
         self.initialEnergy.setInputMask(_fromUtf8(""))
-        self.initialEnergy.setText(QtGui.QApplication.translate("MainWindow", "280", None, QtGui.QApplication.UnicodeUTF8))
+        self.initialEnergy.setText(QtGui.QApplication.translate("MainWindow", "2800", None, QtGui.QApplication.UnicodeUTF8))
         self.initialEnergy.setObjectName(_fromUtf8("initialEnergy"))
         self.label_3 = QtGui.QLabel(self.centralwidget)
         self.label_3.setGeometry(QtCore.QRect(499, 11, 81, 16))
@@ -39,7 +39,7 @@ class Ui_MainWindow(object):
         self.foodEnergy = QtGui.QLineEdit(self.centralwidget)
         self.foodEnergy.setGeometry(QtCore.QRect(500, 150, 112, 26))
         self.foodEnergy.setInputMask(_fromUtf8(""))
-        self.foodEnergy.setText(QtGui.QApplication.translate("MainWindow", "18", None, QtGui.QApplication.UnicodeUTF8))
+        self.foodEnergy.setText(QtGui.QApplication.translate("MainWindow", "60", None, QtGui.QApplication.UnicodeUTF8))
         self.foodEnergy.setObjectName(_fromUtf8("foodEnergy"))
         self.label_4 = QtGui.QLabel(self.centralwidget)
         self.label_4.setGeometry(QtCore.QRect(500, 130, 72, 16))
@@ -48,7 +48,7 @@ class Ui_MainWindow(object):
         self.breedEnergy = QtGui.QLineEdit(self.centralwidget)
         self.breedEnergy.setGeometry(QtCore.QRect(500, 270, 112, 26))
         self.breedEnergy.setInputMask(_fromUtf8(""))
-        self.breedEnergy.setText(QtGui.QApplication.translate("MainWindow", "600", None, QtGui.QApplication.UnicodeUTF8))
+        self.breedEnergy.setText(QtGui.QApplication.translate("MainWindow", "3600", None, QtGui.QApplication.UnicodeUTF8))
         self.breedEnergy.setObjectName(_fromUtf8("breedEnergy"))
         self.label_5 = QtGui.QLabel(self.centralwidget)
         self.label_5.setGeometry(QtCore.QRect(500, 250, 78, 16))
@@ -57,7 +57,7 @@ class Ui_MainWindow(object):
         self.maxEnergy = QtGui.QLineEdit(self.centralwidget)
         self.maxEnergy.setGeometry(QtCore.QRect(500, 80, 112, 26))
         self.maxEnergy.setInputMask(_fromUtf8(""))
-        self.maxEnergy.setText(QtGui.QApplication.translate("MainWindow", "900", None, QtGui.QApplication.UnicodeUTF8))
+        self.maxEnergy.setText(QtGui.QApplication.translate("MainWindow", "4000", None, QtGui.QApplication.UnicodeUTF8))
         self.maxEnergy.setObjectName(_fromUtf8("maxEnergy"))
         self.label_6 = QtGui.QLabel(self.centralwidget)
         self.label_6.setGeometry(QtCore.QRect(500, 60, 106, 16))
@@ -66,7 +66,7 @@ class Ui_MainWindow(object):
         self.initFood = QtGui.QLineEdit(self.centralwidget)
         self.initFood.setGeometry(QtCore.QRect(500, 200, 112, 26))
         self.initFood.setInputMask(_fromUtf8(""))
-        self.initFood.setText(QtGui.QApplication.translate("MainWindow", "800", None, QtGui.QApplication.UnicodeUTF8))
+        self.initFood.setText(QtGui.QApplication.translate("MainWindow", "900", None, QtGui.QApplication.UnicodeUTF8))
         self.initFood.setObjectName(_fromUtf8("initFood"))
         self.label_7 = QtGui.QLabel(self.centralwidget)
         self.label_7.setGeometry(QtCore.QRect(500, 180, 97, 16))
