@@ -14,7 +14,7 @@
 
 import os,sys,random,time
 from string import join
-from math import sqrt, fabs
+from math import sqrt
 from PyQt4 import QtCore,QtGui
 from antsUI import Ui_MainWindow
 
@@ -105,7 +105,7 @@ class Ant:
                         if self.predator > prey.predator:
                             for point in prey.path:
                                 if (int(point[0]) == int(self.x)) and (int(point[1]) == int(self.y)):
-                                    self.energy += prey.energy
+                                    self.energy += prey.energy/4
                                     prey.energy = -1000  # next time it moves, it's dead
                                     raise StopIteration()
                 except StopIteration:
@@ -325,13 +325,13 @@ class Main(QtGui.QMainWindow):
         if self.ui.Mutations.checkState():
             gamma = random.randint(0,1024)
             if gamma & 1:
-                self.mutate(ah)
+                ah = self.mutate(ah)
             elif gamma & 8:
-                self.mutate(bh)
+                bh = self.mutate(bh)
             elif gamma & 64:
-                self.mutate(af)
+                af = self.mutate(af)
             elif gamma & 256:
-                self.mutate(bf)
+                bf = self.mutate(bf)
         
         energy = (mother[0]+father[0])/8 # some wasted energy 
 
@@ -341,14 +341,15 @@ class Main(QtGui.QMainWindow):
         self.ants.append(Ant( mother[1].x, mother[1].y,
                               ah,af,(mother[1].h+1)&HDG_RANGE_MASK, energy, mc ))
 
-        self.ants.append(Ant( mother[1].x, mother[1].y,
+        self.ants.append(Ant( father[1].x, father[1].y,
                               bh,bf,(father[1].h-1)&HDG_RANGE_MASK, energy, fc ))
     
         mother[1].energy = energy
         father[1].energy = energy
 
 
-    def mutate(self,dna):
+    def mutate(self,dna_string):
+        dna = list(dna_string)
         index = random.randint(0,15)
         if dna[index] == 'L':
             dna[index] = 'F'
@@ -359,13 +360,14 @@ class Main(QtGui.QMainWindow):
                 dna[index] = 'R'
             else:
                 dna[index] = 'L'
+        return ''.join(dna)
 
 
     def generate_colour(self,hunt,feed):
         colour = 0;
         for i in range(12):
             colour *= 2
-            if hunt[i] == 'L':
+            if hunt[i] == 'F':
                 colour |= 1  
             colour *= 2
             if feed[i] == 'R':
