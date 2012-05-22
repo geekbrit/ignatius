@@ -105,8 +105,8 @@ class Ant:
                         if self.predator > prey.predator:
                             for point in prey.path:
                                 if (int(point[0]) == int(self.x)) and (int(point[1]) == int(self.y)):
-                                    self.energy += prey.energy/4
-                                    prey.energy = -1000  # next time it moves, it's dead
+                                    prey.energy /= 2  # take a bite
+                                    self.energy += prey.energy/2 # get half of the energy left
                                     raise StopIteration()
                 except StopIteration:
                     pass
